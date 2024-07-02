@@ -14,24 +14,16 @@ import { updateAuthServiceAndCleanUrl } from './updateAuthServiceAndCleanUrl';
 
 const { getSplitParam } = utils;
 
-export default function ModeRoute({
+export default function ModeComponent({
   mode,
   dataSourceName,
   extensionManager,
   servicesManager,
   commandsManager,
   hotkeysManager,
+  studyInstanceUIDs,
 }: withAppTypes) {
   const [appConfig] = useAppConfig();
-
-  console.log({
-    mode,
-    dataSourceName,
-    extensionManager,
-    servicesManager,
-    commandsManager,
-    hotkeysManager,
-  });
 
   // Parse route params/querystring
   const location = useLocation();
@@ -52,7 +44,7 @@ export default function ModeRoute({
   // The URL's query search parameters where the keys are all lower case.
   const lowerCaseSearchParams = useSearchParams({ lowerCaseKeys: true });
 
-  const [studyInstanceUIDs, setStudyInstanceUIDs] = useState(null);
+  // const [studyInstanceUIDs, setStudyInstanceUIDs] = useState(null);
 
   const [refresh, setRefresh] = useState(false);
   const [ExtensionDependenciesLoaded, setExtensionDependenciesLoaded] = useState(false);
@@ -74,7 +66,8 @@ export default function ModeRoute({
 
   const { extensions, sopClassHandlers, hotkeys: hotkeyObj, hangingProtocol } = mode;
 
-  const runTimeHangingProtocolId = lowerCaseSearchParams.get('hangingprotocolid');
+  // const runTimeHangingProtocolId = lowerCaseSearchParams.get('hangingprotocolid');
+  const runTimeHangingProtocolId = 'fourUp';
   const token = lowerCaseSearchParams.get('token');
 
   if (token) {
@@ -129,7 +122,7 @@ export default function ModeRoute({
         params,
         query,
       });
-      setStudyInstanceUIDs(dataSource.getStudyInstanceUIDs({ params, query }));
+      // setStudyInstanceUIDs(dataSource.getStudyInstanceUIDs({ params, query }));
     };
 
     initializeDataSource(params, query);
@@ -154,8 +147,8 @@ export default function ModeRoute({
         const { leftPanels = [], rightPanels = [], ...layoutProps } = layoutData.props;
 
         panelService.reset();
-        panelService.addPanels(panelService.PanelPosition.Left, leftPanels);
-        panelService.addPanels(panelService.PanelPosition.Right, rightPanels);
+        // panelService.addPanels(panelService.PanelPosition.Left, leftPanels);
+        // panelService.addPanels(panelService.PanelPosition.Right, rightPanels);
 
         // layoutProps contains all props but leftPanels and rightPanels
         layoutData.props = layoutProps;
@@ -352,8 +345,6 @@ export default function ModeRoute({
   );
 
   const getLayoutComponent = props => {
-    console.log(layoutTemplateData.current.id);
-
     const layoutTemplateModuleEntry = extensionManager.getModuleEntry(
       layoutTemplateData.current.id
     );
@@ -407,7 +398,7 @@ function createCombinedContextProvider(extensionManager, servicesManager, comman
   };
 }
 
-ModeRoute.propTypes = {
+ModeComponent.propTypes = {
   mode: PropTypes.object.isRequired,
   dataSourceName: PropTypes.string,
   extensionManager: PropTypes.object,

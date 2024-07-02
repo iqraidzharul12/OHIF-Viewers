@@ -4,7 +4,7 @@ import classnames from 'classnames';
 
 import Icon from '../Icon';
 
-const baseLabelClassName = 'flex flex-col flex-1 text-white text-lg pl-1 select-none';
+const baseLabelClassName = 'flex flex-col flex-1 text-lg pl-1 select-none';
 const spanClassName = 'flex flex-row items-center cursor-pointer focus:outline-none';
 const sortIconMap = {
   descending: 'sorting-active-up',

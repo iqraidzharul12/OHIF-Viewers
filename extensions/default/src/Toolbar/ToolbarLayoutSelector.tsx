@@ -103,6 +103,8 @@ function ToolbarLayoutSelectorWithServices({
   }, []);
 
   const onSelectionPreset = useCallback(props => {
+    console.log(props);
+
     commandsManager.run({
       commandName: 'setHangingProtocol',
       commandOptions: { ...props },

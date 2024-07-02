@@ -31,13 +31,12 @@ const StudyListFilter = ({
   return (
     <React.Fragment>
       <div>
-        <div className="bg-black">
+        <div>
           <div className="container relative mx-auto flex flex-col pt-5">
             <div className="mb-5 flex flex-row justify-between">
               <div className="flex min-w-[1px] shrink flex-row items-center gap-6">
                 <Typography
                   variant="h6"
-                  className="text-white"
                 >
                   {t('StudyList')}
                 </Typography>
@@ -69,13 +68,13 @@ const StudyListFilter = ({
                 )}
                 <Typography
                   variant="h6"
-                  className="text-primary-light"
+                  className="text-black"
                 >
                   {`${t('Number of studies')}: `}
                 </Typography>
                 <Typography
                   variant="h6"
-                  className="mr-2"
+                  className="mr-2 text-black"
                   data-cy={'num-studies'}
                 >
                   {numOfStudies > 100 ? '>100' : numOfStudies}
@@ -85,8 +84,8 @@ const StudyListFilter = ({
           </div>
         </div>
       </div>
-      <div className="sticky -top-1 z-10 mx-auto border-b-4 border-black">
-        <div className="bg-primary-dark pt-3 pb-3">
+      <div className="sticky -top-1 z-10 border-b-4 border-black">
+        <div className="bg-white pt-3 pb-3">
           <InputGroup
             inputMeta={filtersMeta}
             values={filterValues}
@@ -98,8 +97,10 @@ const StudyListFilter = ({
         </div>
         {numOfStudies > 100 && (
           <div className="container m-auto">
-            <div className="bg-primary-main rounded-b py-1 text-center text-base">
-              <p className="text-white">{t('Filter list to 100 studies or less to enable sorting')}</p>
+            <div className="bg-white rounded-b py-1 text-center text-base">
+              <p className="text-black">
+                {t('Filter list to 100 studies or less to enable sorting')}
+              </p>
             </div>
           </div>
         )}

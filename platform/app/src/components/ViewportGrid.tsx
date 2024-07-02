@@ -329,8 +329,8 @@ function ViewerViewportGrid(props: withAppTypes) {
       className="h-full w-full"
     >
       <ViewportGrid
-        numRows={numRows}
-        numCols={numCols}
+        numRows={2}
+        numCols={2}
       >
         {getViewportPanes()}
       </ViewportGrid>
@@ -365,11 +365,11 @@ function _getViewportComponent(displaySets, viewportComponents, uiNotificationSe
   }
 
   console.log("Can't show displaySet", SOPClassHandlerId, displaySets[0]);
-  uiNotificationService.show({
-    title: 'Viewport Not Supported Yet',
-    message: `Cannot display SOPClassUID of ${displaySets[0].SOPClassUID} yet`,
-    type: 'error',
-  });
+  // uiNotificationService.show({
+  //   title: 'Viewport Not Supported Yet',
+  //   message: `Cannot display SOPClassUID of ${displaySets[0].SOPClassUID} yet`,
+  //   type: 'error',
+  // });
 
   return EmptyViewport;
 }

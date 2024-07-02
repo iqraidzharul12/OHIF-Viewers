@@ -11,7 +11,6 @@ import filtersMeta from './filtersMeta.js';
 import { useAppConfig } from '@state';
 import { useDebounce, useSearchParams } from '@hooks';
 import { utils, hotkeys } from '@ohif/core';
-import { Col, Flex, Layout, Menu, Row, Space, Table } from 'antd'
 
 import {
   Icon,
@@ -40,7 +39,6 @@ import { Types } from '@ohif/ui';
 import i18n from '@ohif/i18n';
 import Compose from '../Mode/Compose';
 import ModeComponent from '../Mode/ModeComponent';
-import DefaultLayout from '../../layout/DefaultLayout';
 
 const PatientInfoVisibility = Types.PatientInfoVisibility;
 
@@ -132,8 +130,7 @@ function WorkList({
 
   const [linkUrl, setLinkUrl] = useState('');
   const [studyInstanceUID, setStudyInstanceUID] = useState('');
-  const [selectedMode, setSelectedMode] = useState<any>();
-  const [selectedRow, setSelectedRow] = useState<any>();
+  const [mode1, setMode1] = useState();
   const [LayoutComponent, setLayoutComponent] = useState<React.JSX.Element>();
 
   // ~ Rows & Studies
@@ -259,12 +256,95 @@ function WorkList({
   const offset = resultsPerPage * rollingPageNumber;
   const offsetAndTake = offset + resultsPerPage;
   const tableDataSource = sortedStudies.map((study, key) => {
+    const rowKey = key + 1;
+    const isExpanded = expandedRows.some(k => k === rowKey);
     const {
       studyInstanceUid,
+      accession,
       modalities,
+      instances,
+      description,
+      mrn,
+      patientName,
+      date,
+      time,
     } = study;
+    const studyDate =
+      date &&
+      moment(date, ['YYYYMMDD', 'YYYY.MM.DD'], true).isValid() &&
+      moment(date, ['YYYYMMDD', 'YYYY.MM.DD']).format(t('Common:localDateFormat', 'MMM-DD-YYYY'));
+    const studyTime =
+      time &&
+      moment(time, ['HH', 'HHmm', 'HHmmss', 'HHmmss.SSS']).isValid() &&
+      moment(time, ['HH', 'HHmm', 'HHmmss', 'HHmmss.SSS']).format(
+        t('Common:localTimeFormat', 'hh:mm A')
+      );
+
     return {
-      ...study,
+      dataCY: `studyRow-${studyInstanceUid}`,
+      clickableCY: studyInstanceUid,
+      row: [
+        {
+          key: 'patientName',
+          content: patientName ? (
+            <TooltipClipboard>{patientName}</TooltipClipboard>
+          ) : (
+            <span className="text-gray-700">(Empty)</span>
+          ),
+          gridCol: 4,
+        },
+        {
+          key: 'mrn',
+          content: <TooltipClipboard>{mrn}</TooltipClipboard>,
+          gridCol: 3,
+        },
+        {
+          key: 'studyDate',
+          content: (
+            <>
+              {studyDate && <span className="mr-4">{studyDate}</span>}
+              {studyTime && <span>{studyTime}</span>}
+            </>
+          ),
+          title: `${studyDate || ''} ${studyTime || ''}`,
+          gridCol: 5,
+        },
+        {
+          key: 'description',
+          content: <TooltipClipboard>{description}</TooltipClipboard>,
+          gridCol: 4,
+        },
+        {
+          key: 'modality',
+          content: modalities,
+          title: modalities,
+          gridCol: 3,
+        },
+        {
+          key: 'accession',
+          content: <TooltipClipboard>{accession}</TooltipClipboard>,
+          gridCol: 3,
+        },
+        {
+          key: 'instances',
+          content: (
+            <>
+              <Icon
+                name="group-layers"
+                className={classnames('mr-2 inline-flex w-4', {
+                  'text-primary-active': isExpanded,
+                  'text-secondary-light': !isExpanded,
+                })}
+              />
+              {instances}
+            </>
+          ),
+          title: (instances || 0).toString(),
+          gridCol: 2,
+        },
+      ],
+      // Todo: This is actually running for all rows, even if they are
+      // not clicked on.
       expandedContent: (
         <StudyListExpandedRow
           seriesTableColumns={{
@@ -338,7 +418,6 @@ function WorkList({
                   // >
                   //   {/* TODO revisit the completely rounded style of buttons used for launching a mode from the worklist later - for now use LegacyButton*/}
                   <Button
-                    key={studyInstanceUid}
                     type={ButtonEnums.type.primary}
                     size={ButtonEnums.size.medium}
                     disabled={!isValidMode}
@@ -360,7 +439,7 @@ function WorkList({
                       setLinkUrl(
                         `${dataPath ? '../../' : ''}${mode.routeName}${dataPath || ''}?${query.toString()}`
                       );
-                      setSelectedMode(mode);
+                      setMode1(mode);
                     }}
                     dataCY={`mode-${mode.routeName}-${studyInstanceUid}`}
                     className={isValidMode ? 'text-[13px]' : 'bg-[#222d44] text-[13px]'}
@@ -374,6 +453,9 @@ function WorkList({
           </div>
         </StudyListExpandedRow>
       ),
+      onClickRow: () =>
+        setExpandedRows(s => (isExpanded ? s.filter(n => rowKey !== n) : [...s, rowKey])),
+      isExpanded,
     };
   });
 
@@ -472,6 +554,8 @@ function WorkList({
     }
 
     const getLayoutComponent = props => {
+      console.log(layoutTemplateData.current.id);
+
       const layoutTemplateModuleEntry = extensionManager.getModuleEntry(
         layoutTemplateData.current.id
       );
@@ -481,7 +565,7 @@ function WorkList({
     };
 
     const retrieveLayoutData = async () => {
-      const route = selectedMode?.routes?.[0];
+      const route = mode1?.routes?.[0];
       const layoutData = await route.layoutTemplate({
         location,
         servicesManager,
@@ -508,7 +592,7 @@ function WorkList({
     return () => {
       layoutTemplateData.current = null;
     };
-  }, [studyInstanceUID, selectedMode]);
+  }, [studyInstanceUID, mode1]);
 
   const CombinedExtensionsContextProvider = createCombinedContextProvider(
     extensionManager,
@@ -516,162 +600,79 @@ function WorkList({
     commandsManager
   );
 
-  const columns = [
-    {
-      title: 'Patient Name',
-      dataIndex: 'patientName',
-      key: 'patientName',
-    },
-    {
-      title: 'MRN',
-      dataIndex: 'mrn',
-      key: 'mrn',
-    },
-    {
-      title: 'Study Date',
-      dataIndex: 'date',
-      key: 'date',
-      render: (date: string, record: any)=> {
-        const studyDate =
-          date &&
-          moment(date, ['YYYYMMDD', 'YYYY.MM.DD'], true).isValid() &&
-          moment(date, ['YYYYMMDD', 'YYYY.MM.DD']).format(t('Common:localDateFormat', 'MMM-DD-YYYY'));
-        const studyTime =
-          record?.time &&
-          moment(record?.time, ['HH', 'HHmm', 'HHmmss', 'HHmmss.SSS']).isValid() &&
-          moment(record?.time, ['HH', 'HHmm', 'HHmmss', 'HHmmss.SSS']).format(
-            t('Common:localTimeFormat', 'hh:mm A')
-          );
-        return `${studyDate || ""} ${studyTime || ""}`
-      }
-    },
-    {
-      title: 'Description',
-      dataIndex: 'description',
-      key: 'description',
-    },
-    {
-      title: 'Modality',
-      dataIndex: 'address',
-      key: 'address',
-    },
-    {
-      title: 'Accession #',
-      dataIndex: 'accession',
-      key: 'accession',
-      render: (data: string) => <TooltipClipboard>{data}</TooltipClipboard>
-    },
-    {
-      title: 'Instances',
-      dataIndex: 'instances',
-      key: 'instances',
-      render: (data)=> <Row>
-        <Icon name="group-layers"/>&nbsp;{data}
-      </Row>
-    },
-  ]
-
-  const onRowClick = (study) => {
-    const {
-      studyInstanceUid,
-      modalities,
-    } = study;
-
-    return (appConfig.groupEnabledModesFirst
-      ? appConfig.loadedModes.sort((a, b) => {
-          const isValidA = a.isValidMode({
-            modalities: modalities.replaceAll('/', '\\'),
-            study,
-          }).valid;
-          const isValidB = b.isValidMode({
-            modalities: modalities.replaceAll('/', '\\'),
-            study,
-          }).valid;
-
-          return isValidB - isValidA;
-        })
-      : appConfig.loadedModes
-    ).map((mode, i) => {
-      const modalitiesToCheck = modalities.replaceAll('/', '\\');
-
-      const { valid: isValidMode, description: invalidModeDescription } = mode.isValidMode({
-        modalities: modalitiesToCheck,
-        study,
-      });
-
-      const query = new URLSearchParams();
-      if (filterValues.configUrl) {
-        query.append('configUrl', filterValues.configUrl);
-      }
-      query.append('StudyInstanceUIDs', studyInstanceUid);
-
-      return {
-        studyInstanceUid,
-        linkUrl: `${dataPath ? '../../' : ''}${mode.routeName}${dataPath || ''}?${query.toString()}`,
-        dataCY: `mode-${mode.routeName}-${studyInstanceUid}`,
-        displayName: mode.displayName,
-        isValidMode: isValidMode,
-        invalidModeDescription: invalidModeDescription,
-        mode: mode,
-      }
-    })
-  }
-
-  useEffect(()=> {
-    if(selectedRow && selectedRow[0]){
-      const selected =  selectedRow[0]
-      setStudyInstanceUID(selected.studyInstanceUid);
-      setLinkUrl(selected.linkUrl);
-      setSelectedMode(selected.mode);
-    }
-  }, [selectedRow])
-
   return (
-    <DefaultLayout>
-      <StudyListFilter
-        numOfStudies={pageNumber * resultsPerPage > 100 ? 101 : numOfStudies}
-        filtersMeta={filtersMeta}
-        filterValues={{ ...filterValues, ...defaultSortValues }}
-        onChange={setFilterValues}
-        clearFilters={() => setFilterValues(defaultFilterValues)}
-        isFiltering={isFiltering(filterValues, defaultFilterValues)}
-        onUploadClick={uploadProps ? () => show(uploadProps) : undefined}
-        getDataSourceConfigurationComponent={
-          dataSourceConfigurationComponent ? () => dataSourceConfigurationComponent() : undefined
-        }
+    <div className="flex h-screen flex-col bg-white">
+      <Header
+        isSticky
+        menuOptions={menuOptions}
+        isReturnEnabled={false}
+        WhiteLabeling={appConfig.whiteLabeling}
+        showPatientInfo={PatientInfoVisibility.DISABLED}
       />
-      <Flex>
-        <Col flex={"auto"}>
-          <Table
-            rowKey={"studyInstanceUid"}
-            dataSource={tableDataSource}
-            columns={columns}
-            onRow={(record, rowIndex) => {
-              return {
-                onClick: (event) => {
-                  console.log(record);
-                  const data = onRowClick(record)
-                  setSelectedRow(data)
-                },
-              };
-            }}
-          />
-        </Col>
-        {
-          selectedMode &&
-          <Col md={6} style={{maxHeight: '50%'}}>
-            <ModeComponent
-              mode={selectedMode}
-              extensionManager={extensionManager}
-              servicesManager={servicesManager}
-              commandsManager={commandsManager}
-              hotkeysManager={hotkeysManager}
-              studyInstanceUIDs={[studyInstanceUID]}
-            />
-          </Col>
-        }
-      </Flex>
-    </DefaultLayout>
+      {/* <InvestigationalUseDialog dialogConfiguration={appConfig?.investigationalUseDialog} /> */}
+
+      <div className="ohif-scrollbar ohif-scrollbar-stable-gutter flex grow flex-col overflow-y-auto sm:px-5">
+        <StudyListFilter
+          numOfStudies={pageNumber * resultsPerPage > 100 ? 101 : numOfStudies}
+          filtersMeta={filtersMeta}
+          filterValues={{ ...filterValues, ...defaultSortValues }}
+          onChange={setFilterValues}
+          clearFilters={() => setFilterValues(defaultFilterValues)}
+          isFiltering={isFiltering(filterValues, defaultFilterValues)}
+          onUploadClick={uploadProps ? () => show(uploadProps) : undefined}
+          getDataSourceConfigurationComponent={
+            dataSourceConfigurationComponent ? () => dataSourceConfigurationComponent() : undefined
+          }
+        />
+        {hasStudies ? (
+          <div className="grid grid-cols-2">
+            <div className="flex grow flex-col">
+              <StudyListTable
+                tableDataSource={tableDataSource.slice(offset, offsetAndTake)}
+                numOfStudies={numOfStudies}
+                querying={querying}
+                filtersMeta={filtersMeta}
+              />
+              <div className="grow">
+                <StudyListPagination
+                  onChangePage={onPageNumberChange}
+                  onChangePerPage={onResultsPerPageChange}
+                  currentPage={pageNumber}
+                  perPage={resultsPerPage}
+                />
+              </div>
+            </div>
+            <div>
+              {mode1 && (
+                <ModeComponent
+                  mode={mode1}
+                  extensionManager={extensionManager}
+                  servicesManager={servicesManager}
+                  commandsManager={commandsManager}
+                  hotkeysManager={hotkeysManager}
+                  studyInstanceUIDs={[studyInstanceUID]}
+                />
+              )}
+              {/* {CombinedExtensionsContextProvider ? (
+                <CombinedExtensionsContextProvider>
+                  <DragAndDropProvider>{LayoutComponent}</DragAndDropProvider>
+                </CombinedExtensionsContextProvider>
+              ) : (
+                <DragAndDropProvider>{LayoutComponent}</DragAndDropProvider>
+              )} */}
+            </div>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center pt-48">
+            {appConfig.showLoadingIndicator && isLoadingData ? (
+              <LoadingIndicatorProgress className={'h-full w-full bg-black'} />
+            ) : (
+              <EmptyStudies />
+            )}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 

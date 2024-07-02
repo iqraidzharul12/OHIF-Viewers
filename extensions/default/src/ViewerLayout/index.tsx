@@ -110,15 +110,15 @@ function ViewerLayout({
 
   return (
     <div>
-      <ViewerHeader
+      {/* <ViewerHeader
         hotkeysManager={hotkeysManager}
         extensionManager={extensionManager}
         servicesManager={servicesManager}
         appConfig={appConfig}
-      />
+      /> */}
       <div
-        className="relative flex w-full flex-row flex-nowrap items-stretch overflow-hidden bg-black"
-        style={{ height: 'calc(100vh - 52px' }}
+        className="relative flex w-full flex-row flex-nowrap items-stretch overflow-hidden bg-white"
+        style={{ height: '50vh', padding: '16px' }}
       >
         <React.Fragment>
           {showLoadingIndicator && <LoadingIndicatorProgress className="h-full w-full bg-black" />}
@@ -134,7 +134,7 @@ function ViewerLayout({
           ) : null}
           {/* TOOLBAR + GRID */}
           <div className="flex h-full flex-1 flex-col">
-            <div className="relative flex h-full flex-1 items-center justify-center overflow-hidden bg-black">
+            <div className="relative flex h-full flex-1 items-center justify-center overflow-hidden bg-white">
               <ErrorBoundary context="Grid">
                 <ViewportGridComp
                   servicesManager={servicesManager}
@@ -156,7 +156,7 @@ function ViewerLayout({
         </React.Fragment>
       </div>
 
-      <InvestigationalUseDialog dialogConfiguration={appConfig?.investigationalUseDialog} />
+      {/* <InvestigationalUseDialog dialogConfiguration={appConfig?.investigationalUseDialog} /> */}
     </div>
   );
 }
