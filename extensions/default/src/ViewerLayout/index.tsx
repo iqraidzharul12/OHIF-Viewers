@@ -16,7 +16,7 @@ function ViewerLayout({
   // From Modes
   viewports,
   ViewportGridComp,
-  leftPanelClosed = false,
+  leftPanelClosed = true,
   rightPanelClosed = false,
 }: withAppTypes): React.FunctionComponent {
   const [appConfig] = useAppConfig();
@@ -118,7 +118,7 @@ function ViewerLayout({
       /> */}
       <div
         className="relative flex w-full flex-row flex-nowrap items-stretch overflow-hidden bg-white"
-        style={{ height: '50vh', padding: '16px' }}
+        style={{ height: '40vh' }}
       >
         <React.Fragment>
           {showLoadingIndicator && <LoadingIndicatorProgress className="h-full w-full bg-black" />}

@@ -61,13 +61,67 @@ export default function ModeComponent({
     locationRef.current = location;
   }
 
-  const { displaySetService, panelService, hangingProtocolService, userAuthenticationService } =
+  const { displaySetService, panelService, hangingProtocolService, userAuthenticationService, customizationService, viewportGridService } =
     servicesManager.services;
 
   const { extensions, sopClassHandlers, hotkeys: hotkeyObj, hangingProtocol } = mode;
 
+  // //setup protocol
+  // const _areSelectorsValid = (hp, displaySets, hangingProtocolService) => {
+  //   if (!hp.displaySetSelectors || Object.values(hp.displaySetSelectors).length === 0) {
+  //     return true;
+  //   }
+
+  //   return hangingProtocolService.areRequiredSelectorsValid(
+  //     Object.values(hp.displaySetSelectors),
+  //     displaySets[0]
+  //   );
+  // };
+  // const generateAdvancedPresets = () => {
+
+  //   const hangingProtocols = Array.from(hangingProtocolService.protocols.values());
+
+  //   const viewportId = viewportGridService.getActiveViewportId();
+  //   console.log(viewportId);
+
+
+  //   if (!viewportId) {
+  //     return [];
+  //   }
+  //   const displaySetInsaneUIDs = viewportGridService.getDisplaySetsUIDsForViewport(viewportId);
+
+  //   if (!displaySetInsaneUIDs) {
+  //     return [];
+  //   }
+
+  //   const displaySets = displaySetInsaneUIDs.map(uid => displaySetService.getDisplaySetByUID(uid));
+
+  //   return hangingProtocols
+  //     .map(hp => {
+  //       if (!hp.isPreset) {
+  //         return null;
+  //       }
+
+  //       const areValid = _areSelectorsValid(hp, displaySets, hangingProtocolService);
+
+  //       return {
+  //         icon: hp.icon,
+  //         title: hp.name,
+  //         commandOptions: {
+  //           protocolId: hp.id,
+  //         },
+  //         disabled: !areValid,
+  //       };
+  //     })
+  //     .filter(preset => preset !== null);
+  // };
+
+  // const advancedPresets =
+  //   customizationService.get('advancedPresets') || generateAdvancedPresets();
+
+
   // const runTimeHangingProtocolId = lowerCaseSearchParams.get('hangingprotocolid');
-  const runTimeHangingProtocolId = 'fourUp';
+  const runTimeHangingProtocolId = mode.displayName === "Basic Viewer"? 'fourUp': lowerCaseSearchParams.get('hangingprotocolid');
   const token = lowerCaseSearchParams.get('token');
 
   if (token) {

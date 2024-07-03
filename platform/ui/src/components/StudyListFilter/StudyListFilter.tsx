@@ -38,7 +38,7 @@ const StudyListFilter = ({
                 <Typography
                   variant="h6"
                 >
-                  {t('StudyList')}
+                  {t('StudyL ist')}
                 </Typography>
                 {getDataSourceConfigurationComponent && getDataSourceConfigurationComponent()}
                 {onUploadClick && (
@@ -84,7 +84,7 @@ const StudyListFilter = ({
           </div>
         </div>
       </div>
-      <div className="sticky -top-1 z-10 border-b-4 border-black">
+      <div className="sticky -top-1 z-10 mb-2">
         <div className="bg-white pt-3 pb-3">
           <InputGroup
             inputMeta={filtersMeta}

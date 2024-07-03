@@ -1,3 +1,4 @@
+import { Svg } from "@ohif/ui";
 import { Breadcrumb, Layout, Menu, theme } from "antd";
 import React from "react";
 
@@ -9,9 +10,9 @@ const DefaultLayout = ({children}) => {
   } = theme.useToken()
 
   return (
-    <Layout className="h-screen w-screen">
+    <Layout className="w-screen" style={{minHeight: '100vh'}}>
       <Header style={{ display: 'flex', alignItems: 'center' }}>
-        <div className="demo-logo" />
+        <Svg name="logo-ohif" />
       </Header>
       <Content style={{ padding: '0 48px' }}>
         <Breadcrumb style={{ margin: '16px 0' }}>

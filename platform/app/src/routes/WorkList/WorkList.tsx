@@ -11,7 +11,9 @@ import filtersMeta from './filtersMeta.js';
 import { useAppConfig } from '@state';
 import { useDebounce, useSearchParams } from '@hooks';
 import { utils, hotkeys } from '@ohif/core';
-import { Col, Flex, Layout, Menu, Row, Space, Table } from 'antd'
+import { Card, Col, Flex, Layout, Menu, Row, Space, Table, Tabs, Tooltip } from 'antd'
+import { createEditor } from 'slate'
+import { Slate, Editable, withReact } from 'slate-react'
 
 import {
   Icon,
@@ -41,6 +43,7 @@ import i18n from '@ohif/i18n';
 import Compose from '../Mode/Compose';
 import ModeComponent from '../Mode/ModeComponent';
 import DefaultLayout from '../../layout/DefaultLayout';
+import RichTextEditor from './RichTextEditor';
 
 const PatientInfoVisibility = Types.PatientInfoVisibility;
 
@@ -69,6 +72,7 @@ function WorkList({
   const { hotkeyDefinitions, hotkeyDefaults } = hotkeysManager;
   const { show, hide } = useModal();
   const { t } = useTranslation();
+  const [editor] = useState(() => withReact(createEditor()))
   // ~ Modes
   const [appConfig] = useAppConfig();
   // ~ Filters
@@ -134,6 +138,7 @@ function WorkList({
   const [studyInstanceUID, setStudyInstanceUID] = useState('');
   const [selectedMode, setSelectedMode] = useState<any>();
   const [selectedRow, setSelectedRow] = useState<any>();
+  const [activeKey, setActiveKey] = useState("0");
   const [LayoutComponent, setLayoutComponent] = useState<React.JSX.Element>();
 
   // ~ Rows & Studies
@@ -258,124 +263,7 @@ function WorkList({
   const rollingPageNumber = (pageNumber - 1) % rollingPageNumberMod;
   const offset = resultsPerPage * rollingPageNumber;
   const offsetAndTake = offset + resultsPerPage;
-  const tableDataSource = sortedStudies.map((study, key) => {
-    const {
-      studyInstanceUid,
-      modalities,
-    } = study;
-    return {
-      ...study,
-      expandedContent: (
-        <StudyListExpandedRow
-          seriesTableColumns={{
-            description: t('StudyList:Description'),
-            seriesNumber: t('StudyList:Series'),
-            modality: t('StudyList:Modality'),
-            instances: t('StudyList:Instances'),
-          }}
-          seriesTableDataSource={
-            seriesInStudiesMap.has(studyInstanceUid)
-              ? seriesInStudiesMap.get(studyInstanceUid).map(s => {
-                  return {
-                    description: s.description || '(empty)',
-                    seriesNumber: s.seriesNumber ?? '',
-                    modality: s.modality || '',
-                    instances: s.numSeriesInstances || '',
-                  };
-                })
-              : []
-          }
-        >
-          <div className="flex flex-row gap-2">
-            {(appConfig.groupEnabledModesFirst
-              ? appConfig.loadedModes.sort((a, b) => {
-                  const isValidA = a.isValidMode({
-                    modalities: modalities.replaceAll('/', '\\'),
-                    study,
-                  }).valid;
-                  const isValidB = b.isValidMode({
-                    modalities: modalities.replaceAll('/', '\\'),
-                    study,
-                  }).valid;
-
-                  return isValidB - isValidA;
-                })
-              : appConfig.loadedModes
-            ).map((mode, i) => {
-              const modalitiesToCheck = modalities.replaceAll('/', '\\');
-
-              const { valid: isValidMode, description: invalidModeDescription } = mode.isValidMode({
-                modalities: modalitiesToCheck,
-                study,
-              });
-              // TODO: Modes need a default/target route? We mostly support a single one for now.
-              // We should also be using the route path, but currently are not
-              // mode.routeName
-              // mode.routes[x].path
-              // Don't specify default data source, and it should just be picked up... (this may not currently be the case)
-              // How do we know which params to pass? Today, it's just StudyInstanceUIDs and configUrl if exists
-              const query = new URLSearchParams();
-              if (filterValues.configUrl) {
-                query.append('configUrl', filterValues.configUrl);
-              }
-              query.append('StudyInstanceUIDs', studyInstanceUid);
-              return (
-                mode.displayName && (
-                  // <Link
-                  //   className={isValidMode ? '' : 'cursor-not-allowed'}
-                  //   key={i}
-                  //   to={`${dataPath ? '../../' : ''}${mode.routeName}${
-                  //     dataPath || ''
-                  //   }?${query.toString()}`}
-                  //   onClick={event => {
-                  //     // In case any event bubbles up for an invalid mode, prevent the navigation.
-                  //     // For example, the event bubbles up when the icon embedded in the disabled button is clicked.
-                  //     if (!isValidMode) {
-                  //       event.preventDefault();
-                  //     }
-                  //   }}
-                  //   // to={`${mode.routeName}/dicomweb?StudyInstanceUIDs=${studyInstanceUid}`}
-                  // >
-                  //   {/* TODO revisit the completely rounded style of buttons used for launching a mode from the worklist later - for now use LegacyButton*/}
-                  <Button
-                    key={studyInstanceUid}
-                    type={ButtonEnums.type.primary}
-                    size={ButtonEnums.size.medium}
-                    disabled={!isValidMode}
-                    startIconTooltip={
-                      !isValidMode ? (
-                        <div className="font-inter flex w-[206px] whitespace-normal text-left text-xs font-normal text-white	">
-                          {invalidModeDescription}
-                        </div>
-                      ) : null
-                    }
-                    startIcon={
-                      <Icon
-                        className="!h-[20px] !w-[20px] text-black"
-                        name={isValidMode ? 'launch-arrow' : 'launch-info'}
-                      />
-                    } // launch-arrow | launch-info
-                    onClick={() => {
-                      setStudyInstanceUID(studyInstanceUid);
-                      setLinkUrl(
-                        `${dataPath ? '../../' : ''}${mode.routeName}${dataPath || ''}?${query.toString()}`
-                      );
-                      setSelectedMode(mode);
-                    }}
-                    dataCY={`mode-${mode.routeName}-${studyInstanceUid}`}
-                    className={isValidMode ? 'text-[13px]' : 'bg-[#222d44] text-[13px]'}
-                  >
-                    {mode.displayName}
-                  </Button>
-                  // </Link>
-                )
-              );
-            })}
-          </div>
-        </StudyListExpandedRow>
-      ),
-    };
-  });
+  const tableDataSource = useMemo(()=> sortedStudies, [sortedStudies]);
 
   const hasStudies = numOfStudies > 0;
   const versionNumber = process.env.VERSION_NUMBER;
@@ -623,25 +511,123 @@ function WorkList({
       setStudyInstanceUID(selected.studyInstanceUid);
       setLinkUrl(selected.linkUrl);
       setSelectedMode(selected.mode);
+      setActiveKey("0");
+    } else {
+      setStudyInstanceUID(undefined);
+      setLinkUrl(undefined);
+      setSelectedMode(undefined);
+      setActiveKey("0");
     }
   }, [selectedRow])
 
+  const mockDetailDataSource = [{
+      "id": 1,
+      "thumbnail": "gambar",
+      "number": "201",
+      "date": "04/06/2024 20:45",
+      "modality": "CR",
+      "body_part": "THORAX PA",
+      "instances": "1",
+    },{
+      "id": 2,
+      "thumbnail": "gambar",
+      "number": "202",
+      "date": "04/06/2024 20:45",
+      "modality": "CR",
+      "body_part": "THORAX AP",
+      "instances": "1",
+    },{
+      "id": 3,
+      "thumbnail": "gambar",
+      "number": "203",
+      "date": "04/06/2024 20:45",
+      "modality": "CR",
+      "body_part": "ABDOMEN",
+      "instances": "2",
+    },{
+      "id": 4,
+      "thumbnail": "gambar",
+      "number": "204",
+      "date": "04/06/2024 20:45",
+      "modality": "CR",
+      "body_part": "THORAX AP",
+      "instances": "1",
+    },{
+      "id": 5,
+      "thumbnail": "gambar",
+      "number": "205",
+      "date": "04/06/2024 20:45",
+      "modality": "CR",
+      "body_part": "THORAX PA",
+      "instances": "2",
+    },
+  ]
+
+  const detailColumns = [
+    {
+      title: 'No',
+      dataIndex: 'id',
+      key: 'id',
+    },
+    {
+      title: 'Thumbnail',
+      dataIndex: 'thumbnail',
+      key: 'thumbnail',
+    },
+    {
+      title: 'Number',
+      dataIndex: 'number',
+      key: 'number',
+    },
+    {
+      title: 'Series Date',
+      dataIndex: 'date',
+      key: 'date',
+    },
+    {
+      title: 'Modality',
+      dataIndex: 'modality',
+      key: 'modality',
+    },
+    {
+      title: 'Body Part',
+      dataIndex: 'body_part',
+      key: 'body_part',
+    },
+    {
+      title: 'Instances',
+      dataIndex: 'instances',
+      key: 'instances',
+    },
+  ]
+
+  useEffect(()=> {
+    if(tableDataSource && tableDataSource[0]){
+      const data = onRowClick(tableDataSource[0])
+      if(isEqual(selectedRow, data)){
+        // setSelectedRow(null)
+      } else {
+        setSelectedRow(data)
+      }
+    }
+  }, [tableDataSource])
+
   return (
     <DefaultLayout>
-      <StudyListFilter
-        numOfStudies={pageNumber * resultsPerPage > 100 ? 101 : numOfStudies}
-        filtersMeta={filtersMeta}
-        filterValues={{ ...filterValues, ...defaultSortValues }}
-        onChange={setFilterValues}
-        clearFilters={() => setFilterValues(defaultFilterValues)}
-        isFiltering={isFiltering(filterValues, defaultFilterValues)}
-        onUploadClick={uploadProps ? () => show(uploadProps) : undefined}
-        getDataSourceConfigurationComponent={
-          dataSourceConfigurationComponent ? () => dataSourceConfigurationComponent() : undefined
-        }
-      />
       <Flex>
-        <Col flex={"auto"}>
+        <Col md={12}>
+          <StudyListFilter
+            numOfStudies={pageNumber * resultsPerPage > 100 ? 101 : numOfStudies}
+            filtersMeta={filtersMeta}
+            filterValues={{ ...filterValues, ...defaultSortValues }}
+            onChange={setFilterValues}
+            clearFilters={() => setFilterValues(defaultFilterValues)}
+            isFiltering={isFiltering(filterValues, defaultFilterValues)}
+            onUploadClick={uploadProps ? () => show(uploadProps) : undefined}
+            getDataSourceConfigurationComponent={
+              dataSourceConfigurationComponent ? () => dataSourceConfigurationComponent() : undefined
+            }
+          />
           <Table
             rowKey={"studyInstanceUid"}
             dataSource={tableDataSource}
@@ -649,17 +635,59 @@ function WorkList({
             onRow={(record, rowIndex) => {
               return {
                 onClick: (event) => {
-                  console.log(record);
                   const data = onRowClick(record)
-                  setSelectedRow(data)
+                  if(isEqual(selectedRow, data)){
+                    // setSelectedRow(null)
+                  } else {
+                    setSelectedRow(data)
+                  }
                 },
               };
             }}
+            rowClassName={(record, rowIndex) => {
+              const data = onRowClick(record)
+              if(isEqual(selectedRow, data)){
+                return "ant-table-row-selected cursor-pointer"
+              } else {
+                return "cursor-pointer"
+              }
+            }}
+            scroll={{ y: 480, scrollToFirstRowOnChange: true }}
           />
+          {
+            selectedMode &&
+              <Table
+                rowKey={"id"}
+                dataSource={mockDetailDataSource}
+                columns={detailColumns}
+                pagination={false}
+                scroll={{ y: 160, scrollToFirstRowOnChange: true }}
+              />
+          }
         </Col>
         {
           selectedMode &&
-          <Col md={6} style={{maxHeight: '50%'}}>
+          <Col md={12} style={{padding: '16px', paddingTop: '170px'}}>
+            <Tabs
+              activeKey={activeKey}
+              onChange={(key)=> {
+                if(selectedRow && selectedRow[key]){
+                  const selected =  selectedRow[key]
+                  setStudyInstanceUID(selected.studyInstanceUid);
+                  setLinkUrl(selected.linkUrl);
+                  setSelectedMode(selected.mode);
+                  setActiveKey(key)
+                }
+              }}
+              type="card"
+              items={(selectedRow || []).map((item, index)=> {
+                return {
+                  label: <Tooltip title={!item.isValidMode? item.invalidModeDescription: ""}>{`${item.displayName}`}</Tooltip> ,
+                  key: index.toString(),
+                  disabled: !item.isValidMode,
+                };
+              })}
+            />
             <ModeComponent
               mode={selectedMode}
               extensionManager={extensionManager}
@@ -668,6 +696,10 @@ function WorkList({
               hotkeysManager={hotkeysManager}
               studyInstanceUIDs={[studyInstanceUID]}
             />
+            <br/>
+            <Card>
+              <RichTextEditor />
+            </Card>
           </Col>
         }
       </Flex>

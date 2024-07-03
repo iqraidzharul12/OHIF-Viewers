@@ -419,7 +419,7 @@ class CornerstoneViewportService extends PubSubService implements IViewportServi
     // same viewport/element and just change the viewportData for it (drag and drop etc.)
     // the disableElement storePresentation handle would not be called in this case
     // and we would lose the presentation.
-    this.storePresentation({ viewportId: viewportInfo.getViewportId() });
+    this.storePresentation({ viewportId: viewportInfo?.getViewportId() });
 
     if (!viewportInfo) {
       throw new Error('element is not enabled for the given viewportId');
