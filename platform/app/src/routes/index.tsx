@@ -8,6 +8,7 @@ import WorkList from './WorkList';
 import Local from './Local';
 import Debug from './Debug';
 import NotFound from './NotFound';
+import Login from '../auth/Login';
 import buildModeRoutes from './buildModeRoutes';
 import PrivateRoute from './PrivateRoute';
 import PropTypes from 'prop-types';
@@ -76,6 +77,13 @@ const bakedInRoutes = [
   },
 ];
 
+const authRoutes = [
+  {
+    path: '/login',
+    children: Login,
+  },
+];
+
 // NOT FOUND (404)
 const notFoundRoute = { component: NotFound };
 
@@ -115,6 +123,7 @@ const createRoutes = ({
     ...(customRoutes?.routes || []),
     ...bakedInRoutes,
     customRoutes?.notFoundRoute || notFoundRoute,
+    ...authRoutes,
   ];
 
   function RouteWithErrorBoundary({ route, ...rest }) {

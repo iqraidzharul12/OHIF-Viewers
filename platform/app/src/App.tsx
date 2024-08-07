@@ -31,6 +31,15 @@ import { AppConfigProvider } from '@state';
 import createRoutes from './routes';
 import appInit from './appInit.js';
 import OpenIdConnectRoutes from './utils/OpenIdConnectRoutes';
+import createStore from 'react-auth-kit/createStore';
+import AuthProvider from 'react-auth-kit';
+
+const store = createStore({
+  authName:'_auth',
+  authType:'cookie',
+  cookieDomain: window.location.hostname,
+  cookieSecure: window.location.protocol === 'https:',
+});
 
 let commandsManager: CommandsManager,
   extensionManager: ExtensionManager,
@@ -156,10 +165,12 @@ function App({
 
   return (
     <CombinedProviders>
-      <BrowserRouter basename={routerBasename}>
-        {authRoutes}
-        {appRoutes}
-      </BrowserRouter>
+      <AuthProvider store={store}>
+        <BrowserRouter basename={routerBasename}>
+          {authRoutes}
+          {appRoutes}
+        </BrowserRouter>
+      </AuthProvider>
     </CombinedProviders>
   );
 }

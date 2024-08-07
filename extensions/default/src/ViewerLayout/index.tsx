@@ -16,8 +16,9 @@ function ViewerLayout({
   // From Modes
   viewports,
   ViewportGridComp,
-  leftPanelClosed = true,
+  leftPanelClosed = false,
   rightPanelClosed = false,
+  isComponent = false,
 }: withAppTypes): React.FunctionComponent {
   const [appConfig] = useAppConfig();
 
@@ -31,7 +32,7 @@ function ViewerLayout({
 
   const [hasRightPanels, setHasRightPanels] = useState(hasPanels('right'));
   const [hasLeftPanels, setHasLeftPanels] = useState(hasPanels('left'));
-  const [leftPanelClosedState, setLeftPanelClosed] = useState(leftPanelClosed);
+  const [leftPanelClosedState, setLeftPanelClosed] = useState(isComponent? true : leftPanelClosed);
   const [rightPanelClosedState, setRightPanelClosed] = useState(rightPanelClosed);
 
   /**
@@ -110,15 +111,18 @@ function ViewerLayout({
 
   return (
     <div>
-      {/* <ViewerHeader
-        hotkeysManager={hotkeysManager}
-        extensionManager={extensionManager}
-        servicesManager={servicesManager}
-        appConfig={appConfig}
-      /> */}
+      {
+        !isComponent &&
+          <ViewerHeader
+            hotkeysManager={hotkeysManager}
+            extensionManager={extensionManager}
+            servicesManager={servicesManager}
+            appConfig={appConfig}
+          />
+      }
       <div
-        className="relative flex w-full flex-row flex-nowrap items-stretch overflow-hidden bg-white"
-        style={{ height: '40vh' }}
+        className={`relative flex w-full flex-row flex-nowrap items-stretch overflow-hidden ${isComponent? 'bg-white': 'bg-black'}`}
+        style={isComponent? { height: '40vh' }: { height: 'calc(100vh - 52px' }}
       >
         <React.Fragment>
           {showLoadingIndicator && <LoadingIndicatorProgress className="h-full w-full bg-black" />}
@@ -134,7 +138,7 @@ function ViewerLayout({
           ) : null}
           {/* TOOLBAR + GRID */}
           <div className="flex h-full flex-1 flex-col">
-            <div className="relative flex h-full flex-1 items-center justify-center overflow-hidden bg-white">
+            <div className={`relative flex h-full flex-1 items-center justify-center overflow-hidden ${isComponent? 'bg-white': 'bg-black'}`}>
               <ErrorBoundary context="Grid">
                 <ViewportGridComp
                   servicesManager={servicesManager}

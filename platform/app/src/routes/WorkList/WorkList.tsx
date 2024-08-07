@@ -11,7 +11,7 @@ import filtersMeta from './filtersMeta.js';
 import { useAppConfig } from '@state';
 import { useDebounce, useSearchParams } from '@hooks';
 import { utils, hotkeys } from '@ohif/core';
-import { Card, Col, Flex, Layout, Menu, Row, Space, Table, Tabs, Tooltip } from 'antd'
+import { Button, Card, Col, Flex, List, Row, Table, Tabs, Tooltip, Typography } from 'antd'
 import { createEditor } from 'slate'
 import { Slate, Editable, withReact } from 'slate-react'
 
@@ -30,7 +30,6 @@ import {
   LoadingIndicatorProgress,
   useSessionStorage,
   InvestigationalUseDialog,
-  Button,
   ButtonEnums,
   ImageViewerProvider,
   DragAndDropProvider,
@@ -607,16 +606,15 @@ function WorkList({
       if(isEqual(selectedRow, data)){
         // setSelectedRow(null)
       } else {
-        setSelectedRow(data)
+        // setSelectedRow(data)
       }
     }
   }, [tableDataSource])
 
   return (
     <DefaultLayout>
-      <Flex>
-        <Col md={12}>
-          <StudyListFilter
+
+      <StudyListFilter
             numOfStudies={pageNumber * resultsPerPage > 100 ? 101 : numOfStudies}
             filtersMeta={filtersMeta}
             filterValues={{ ...filterValues, ...defaultSortValues }}
@@ -628,7 +626,57 @@ function WorkList({
               dataSourceConfigurationComponent ? () => dataSourceConfigurationComponent() : undefined
             }
           />
+      <Flex>
+        <Col md={2} style={{padding: '0 8px'}}>
+          <Card title="AKSI">
+            <Row gutter={[16, 16]}>
+              {
+                ["A", "B", "C", "D"].map((item)=> (
+                  <Col span={4}><Button size='small'>{item}</Button></Col>
+                ))
+              }
+            </Row>
+          </Card>
+          <List
+            className='my-4'
+            size="small"
+            header={<Typography.Text strong>Riwayat Pemeriksaan</Typography.Text>}
+            bordered
+            dataSource={[
+              "04/06/2024 20:45:00",
+              "08/05/2024 10:15:00",
+              "18/04/2024 16:35:00",
+              "28/03/2024 04:25:00",
+            ]}
+            renderItem={(item, index) => <List.Item key={index}>{index+ 1}. {item}</List.Item>}
+          />
+          <List
+            className='my-4'
+            size="small"
+            header={<Typography.Text strong>Data Worklist</Typography.Text>}
+            bordered
+            dataSource={[
+              { status: "Not Started", count: 5},
+              { status: "DONE", count: 15}
+            ]}
+            renderItem={(item, index) => <List.Item key={index}><Row className="w-full" justify="space-between"><Col>{item.status}</Col><Col>{item.count}</Col></Row></List.Item>}
+          />
+          <List
+            className='my-4'
+            size="small"
+            header={<Typography.Text strong>Status</Typography.Text>}
+            bordered
+            dataSource={[
+              { status: "Normal", count: 17},
+              { status: "CITO", count: 3}
+            ]}
+            renderItem={(item, index) => <List.Item key={index}><Row className="w-full" justify="space-between"><Col>{item.status}</Col><Col>{item.count}</Col></Row></List.Item>}
+          />
+          <Button className='w-full'>VIEW DASHBOARD</Button>
+        </Col>
+        <Col md={14}>
           <Table
+            bordered
             rowKey={"studyInstanceUid"}
             dataSource={tableDataSource}
             columns={columns}
@@ -642,6 +690,10 @@ function WorkList({
                     setSelectedRow(data)
                   }
                 },
+                onDoubleClick: () => {
+                  const newWindow = window.open(linkUrl, '_blank', 'noopener,noreferrer,popup')
+                  if (newWindow) newWindow.opener = null
+                }
               };
             }}
             rowClassName={(record, rowIndex) => {
@@ -657,6 +709,7 @@ function WorkList({
           {
             selectedMode &&
               <Table
+                bordered
                 rowKey={"id"}
                 dataSource={mockDetailDataSource}
                 columns={detailColumns}
@@ -667,7 +720,7 @@ function WorkList({
         </Col>
         {
           selectedMode &&
-          <Col md={12} style={{padding: '16px', paddingTop: '170px'}}>
+          <Col md={8} style={{padding: '16px'}}>
             <Tabs
               activeKey={activeKey}
               onChange={(key)=> {

@@ -24,15 +24,6 @@ export default function ModeRoute({
 }: withAppTypes) {
   const [appConfig] = useAppConfig();
 
-  console.log({
-    mode,
-    dataSourceName,
-    extensionManager,
-    servicesManager,
-    commandsManager,
-    hotkeysManager,
-  });
-
   // Parse route params/querystring
   const location = useLocation();
 

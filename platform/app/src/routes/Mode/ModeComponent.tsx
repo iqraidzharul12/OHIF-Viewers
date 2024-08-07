@@ -205,7 +205,10 @@ export default function ModeComponent({
         // panelService.addPanels(panelService.PanelPosition.Right, rightPanels);
 
         // layoutProps contains all props but leftPanels and rightPanels
-        layoutData.props = layoutProps;
+        layoutData.props = {
+          ...layoutProps,
+          isComponent: true,
+        };
 
         layoutTemplateData.current = layoutData;
         setRefresh(!refresh);
