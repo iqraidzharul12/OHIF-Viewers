@@ -112,16 +112,16 @@ function ViewerLayout({
   return (
     <div>
       {
-        !isComponent &&
-          <ViewerHeader
-            hotkeysManager={hotkeysManager}
-            extensionManager={extensionManager}
-            servicesManager={servicesManager}
-            appConfig={appConfig}
-          />
+        <ViewerHeader
+          hotkeysManager={hotkeysManager}
+          extensionManager={extensionManager}
+          servicesManager={servicesManager}
+          appConfig={appConfig}
+          isComponent={isComponent}
+        />
       }
       <div
-        className={`relative flex w-full flex-row flex-nowrap items-stretch overflow-hidden ${isComponent? 'bg-white': 'bg-black'}`}
+        className={`relative flex w-full flex-row flex-nowrap items-stretch overflow-hidden bg-black`}
         style={isComponent? { height: '40vh' }: { height: 'calc(100vh - 52px' }}
       >
         <React.Fragment>
@@ -138,7 +138,7 @@ function ViewerLayout({
           ) : null}
           {/* TOOLBAR + GRID */}
           <div className="flex h-full flex-1 flex-col">
-            <div className={`relative flex h-full flex-1 items-center justify-center overflow-hidden ${isComponent? 'bg-white': 'bg-black'}`}>
+            <div className={`relative flex h-full flex-1 items-center justify-center overflow-hidden bg-black`}>
               <ErrorBoundary context="Grid">
                 <ViewportGridComp
                   servicesManager={servicesManager}

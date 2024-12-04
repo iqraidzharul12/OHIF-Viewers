@@ -15,6 +15,7 @@ function ViewerHeader({
   extensionManager,
   servicesManager,
   appConfig,
+  isComponent = false,
 }: withAppTypes) {
   const navigate = useNavigate();
   const location = useLocation();
@@ -106,7 +107,7 @@ function ViewerHeader({
 
   return (
     <Header
-      menuOptions={menuOptions}
+      menuOptions={!isComponent && menuOptions}
       isReturnEnabled={!!appConfig.showStudyList}
       onClickReturnButton={onClickReturnButton}
       WhiteLabeling={appConfig.whiteLabeling}
@@ -119,10 +120,11 @@ function ViewerHeader({
         />
       }
       appConfig={appConfig}
+      isComponent={isComponent}
     >
       <ErrorBoundary context="Primary Toolbar">
         <div className="relative flex justify-center gap-[4px]">
-          <Toolbar servicesManager={servicesManager} />
+          <Toolbar servicesManager={servicesManager} isComponent={isComponent} />
         </div>
       </ErrorBoundary>
     </Header>

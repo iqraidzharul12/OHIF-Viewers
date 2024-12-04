@@ -14,6 +14,7 @@ const NavBar = ({ className, children, isSticky }) => {
         !isSticky && notStickyClasses,
         className
       )}
+      style={{ backgroundColor: "#001529"}}
     >
       {children}
     </div>

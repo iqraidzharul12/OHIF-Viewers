@@ -22,6 +22,7 @@ function Header({
   servicesManager,
   Secondary,
   appConfig,
+  isComponent = false,
   ...props
 }: withAppTypes): ReactNode {
   const { t } = useTranslation('Header');
@@ -49,7 +50,7 @@ function Header({
             onClick={onClickReturn}
             data-cy="return-to-work-list"
           >
-            {isReturnEnabled && (
+            {isReturnEnabled && !isComponent && (
               <Icon
                 name="chevron-left"
                 className="text-primary-active w-8"
@@ -65,31 +66,34 @@ function Header({
           <div className="flex items-center justify-center space-x-2">{children}</div>
         </div>
         <div className="absolute right-0 top-1/2 flex -translate-y-1/2 select-none items-center">
-          {showPatientInfo !== PatientInfoVisibility.DISABLED && (
+          {showPatientInfo !== PatientInfoVisibility.DISABLED && !isComponent && (
             <HeaderPatientInfo
               servicesManager={servicesManager}
               appConfig={appConfig}
             />
           )}
           <div className="border-primary-dark mx-1.5 h-[25px] border-r"></div>
-          <div className="flex-shrink-0">
-            <Dropdown
-              id="options"
-              showDropdownIcon={false}
-              list={menuOptions}
-              alignment="right"
-            >
-              <IconButton
-                id={'options-settings-icon'}
-                variant="text"
-                color="inherit"
-                size="initial"
-                className="text-primary-active hover:bg-primary-dark h-full w-full"
-              >
-                <Icon name="icon-settings" />
-              </IconButton>
-            </Dropdown>
-          </div>
+          {
+            !isComponent &&
+              <div className="flex-shrink-0">
+                <Dropdown
+                  id="options"
+                  showDropdownIcon={false}
+                  list={menuOptions}
+                  alignment="right"
+                >
+                  <IconButton
+                    id={'options-settings-icon'}
+                    variant="text"
+                    color="inherit"
+                    size="initial"
+                    className="text-primary-active hover:bg-primary-dark h-full w-full"
+                  >
+                    <Icon name="icon-settings" />
+                  </IconButton>
+                </Dropdown>
+              </div>
+          }
         </div>
       </div>
     </NavBar>

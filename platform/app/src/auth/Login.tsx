@@ -1,36 +1,20 @@
 import React from "react";
 import { Button, Card, Checkbox, Flex, Form, Grid, Input, theme, Typography } from "antd";
 import { LockOutlined, MailOutlined } from "@ant-design/icons";
-import { useNavigate } from "react-router-dom";
-import useSignIn from 'react-auth-kit/hooks/useSignIn';
+import { useLoginMutation } from "./Login.state";
 
 const { useToken } = theme;
 const { useBreakpoint } = Grid;
-const { Text, Title, Link } = Typography;
+const { Text, Title } = Typography;
 
 const Login = () => {
   const { token } = useToken();
   const screens = useBreakpoint();
-  const navigate = useNavigate();
-  const signIn = useSignIn();
+  const { isSigningIn, doSignIn } = useLoginMutation()
 
-  const onFinish = (values) => {
-    console.log("Received values of form: ", values);
-    if(signIn({
-      auth: {
-          token: 'exampleToken',
-          type: 'Bearer'
-      },
-      userState: {
-          name: values.email,
-          uid: 123456
-      }
-    })){
-      navigate(`/`)
-    }else {
-      console.log('cannot sign in')
-    }
-  };
+  const onFinishFailed = () => {
+    // Do nothing
+}
 
   const styles = {
     container: {
@@ -110,23 +94,23 @@ const Login = () => {
             initialValues={{
               remember: true,
             }}
-            onFinish={onFinish}
+            onFinish={(values) => doSignIn(values)}
+            onFinishFailed={onFinishFailed}
             layout="vertical"
             requiredMark="optional"
           >
             <Form.Item
-              name="email"
+              name="username"
               rules={[
                 {
-                  type: "email",
                   required: true,
-                  message: "Please input your Email!",
+                  message: "Please input your Username!",
                 },
               ]}
             >
               <Input
                 prefix={<MailOutlined />}
-                placeholder="Email"
+                placeholder="Username"
               />
             </Form.Item>
             <Form.Item
@@ -150,7 +134,7 @@ const Login = () => {
               </Form.Item>
             </Flex>
             <Form.Item style={{ marginTop: "24px" }}>
-              <Button style={styles.button} block={true} type="primary" htmlType="submit">
+              <Button style={styles.button} block={true} type="primary" htmlType="submit" loading={isSigningIn}>
                 Log in
               </Button>
             </Form.Item>

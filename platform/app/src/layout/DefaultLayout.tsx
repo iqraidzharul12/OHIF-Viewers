@@ -1,6 +1,7 @@
 import { Svg } from "@ohif/ui";
-import { Breadcrumb, Layout, Menu, theme } from "antd";
+import { Breadcrumb, Flex, Layout, Menu, theme } from "antd";
 import React from "react";
+import UserProfile from "../components/UserProfile";
 
 const { Header, Content, Footer, Sider } = Layout;
 
@@ -9,10 +10,26 @@ const DefaultLayout = ({children, auth = false}) => {
     token: { colorBgContainer, borderRadiusLG },
   } = theme.useToken()
 
+  const items = new Array(1).fill(null).map((_, index) => ({
+    key: index + 1,
+    label: <UserProfile />,
+  }));
+
   return (
     <Layout className="w-screen" style={{minHeight: '100vh'}}>
-      <Header style={{ display: 'flex', alignItems: 'center' }}>
+      <Header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
         <Svg name="logo-ohif" />
+        {/* <Menu
+          mode="horizontal"
+          items={[
+            {
+              key: "user-profile",
+              label: <UserProfile />,
+            }
+          ]}
+          style={{ minWidth: 0 }}
+        /> */}
+        <UserProfile />
       </Header>
       {
         auth? children
@@ -29,7 +46,7 @@ const DefaultLayout = ({children, auth = false}) => {
         </Content>
       }
       <Footer style={{ textAlign: 'center' }}>
-        ORTHANC ©{new Date().getFullYear()}
+        PACS ©{new Date().getFullYear()}
       </Footer>
     </Layout>
   )

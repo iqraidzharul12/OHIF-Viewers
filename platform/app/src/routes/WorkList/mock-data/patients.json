@@ -1,0 +1,131 @@
+[
+  {
+     "ID" : "39dfa552-83318d31-afe5a3ff-4a0e3253-e2045e43",
+     "IsStable" : true,
+     "Labels" : [],
+     "LastUpdate" : "20240806T091548",
+     "MainDicomTags" :
+     {
+        "0010,0010" :
+        {
+           "Name" : "PatientName",
+           "Type" : "String",
+           "Value" : "MAYSARAH"
+        },
+        "0010,0020" :
+        {
+           "Name" : "PatientID",
+           "Type" : "String",
+           "Value" : "0000"
+        },
+        "0010,0030" :
+        {
+           "Name" : "PatientBirthDate",
+           "Type" : "String",
+           "Value" : "19950507"
+        },
+        "0010,0040" :
+        {
+           "Name" : "PatientSex",
+           "Type" : "String",
+           "Value" : "F"
+        },
+        "0010,1000" :
+        {
+           "Name" : "OtherPatientIDs",
+           "Type" : "String",
+           "Value" : ""
+        }
+     },
+     "Studies" :
+     [
+        "3e2a9354-54ae0d44-75cd6c4c-05077d0b-d2616eab",
+        "5721137f-94d31c26-01b09cb1-a39b288d-7206fd41",
+        "a94ceac8-bcc2dd46-2dbbfed8-74212bb6-a162d2d1",
+        "366e6561-b0ac454b-f3ea9b26-014f9daa-82f4e210"
+     ],
+     "Type" : "Patient"
+  },
+  {
+     "ID" : "40cf8b65-fe461e9c-c77780db-5a43cfd3-01303bcc",
+     "IsStable" : true,
+     "Labels" : [],
+     "LastUpdate" : "20240806T091546",
+     "MainDicomTags" :
+     {
+        "0010,0010" :
+        {
+           "Name" : "PatientName",
+           "Type" : "String",
+           "Value" : "RUSTANI PANDIANGAN"
+        },
+        "0010,0020" :
+        {
+           "Name" : "PatientID",
+           "Type" : "String",
+           "Value" : "00858849"
+        },
+        "0010,0030" :
+        {
+           "Name" : "PatientBirthDate",
+           "Type" : "String",
+           "Value" : "19701005"
+        },
+        "0010,0040" :
+        {
+           "Name" : "PatientSex",
+           "Type" : "String",
+           "Value" : "F"
+        },
+        "0010,1000" :
+        {
+           "Name" : "OtherPatientIDs",
+           "Type" : "String",
+           "Value" : ""
+        }
+     },
+     "Studies" :
+     [
+        "87376e44-a1449d0e-1efc240e-02fb554c-872040f5"
+     ],
+     "Type" : "Patient"
+  },
+  {
+     "ID" : "63574b9f-3c7a28d9-eaa64722-4d24e061-72081f56",
+     "IsStable" : true,
+     "Labels" : [],
+     "LastUpdate" : "20240806T091551",
+     "MainDicomTags" :
+     {
+        "0010,0010" :
+        {
+           "Name" : "PatientName",
+           "Type" : "String",
+           "Value" : "KASIPAH. NY"
+        },
+        "0010,0020" :
+        {
+           "Name" : "PatientID",
+           "Type" : "String",
+           "Value" : "12402644"
+        },
+        "0010,0030" :
+        {
+           "Name" : "PatientBirthDate",
+           "Type" : "String",
+           "Value" : "19600810"
+        },
+        "0010,0040" :
+        {
+           "Name" : "PatientSex",
+           "Type" : "String",
+           "Value" : "F"
+        }
+     },
+     "Studies" :
+     [
+        "5f699b51-a796df39-8b2db8d0-42c61bbc-432ce1bf"
+     ],
+     "Type" : "Patient"
+  }
+]

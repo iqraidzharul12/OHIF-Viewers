@@ -33,10 +33,14 @@ import appInit from './appInit.js';
 import OpenIdConnectRoutes from './utils/OpenIdConnectRoutes';
 import createStore from 'react-auth-kit/createStore';
 import AuthProvider from 'react-auth-kit';
+import { RecoilRoot } from 'recoil';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { AUTHENTICATION_KEY } from './constants/localstorage';
+import { ConfigProvider, theme } from 'antd';
 
 const store = createStore({
-  authName:'_auth',
-  authType:'cookie',
+  authName: AUTHENTICATION_KEY,
+  authType:'localstorage',
   cookieDomain: window.location.hostname,
   cookieSecure: window.location.protocol === 'https:',
 });
@@ -110,6 +114,27 @@ function App({
     customizationService,
   } = servicesManager.services;
 
+
+  const queryClient = new QueryClient({
+    defaultOptions: {
+        queries: {
+            // the query will not refetch on window focus.
+            refetchOnWindowFocus: false,
+            // failed queries will not retry by default.
+            retry: false,
+            // query will always fetch and ignore the online / offline state.
+            networkMode: 'always',
+            staleTime: Infinity,
+        },
+        mutations: {
+            // failed mutations will not retry.
+            retry: false,
+            // query will always fetch and ignore the online / offline state.
+            networkMode: 'always',
+        }
+    }
+  })
+
   const providers = [
     [AppConfigProvider, { value: appConfigState }],
     [UserAuthenticationProvider, { service: userAuthenticationService }],
@@ -124,6 +149,8 @@ function App({
     [SnackbarProvider, { service: uiNotificationService }],
     [DialogProvider, { service: uiDialogService }],
     [ModalProvider, { service: uiModalService, modal: Modal }],
+    [QueryClientProvider, { client: queryClient }],
+    [ConfigProvider, { theme: {algorithm: [ theme.darkAlgorithm ] } }],
   ];
 
   // Loop through and register each of the service providers registered with the ServiceProvidersManager.
@@ -166,10 +193,12 @@ function App({
   return (
     <CombinedProviders>
       <AuthProvider store={store}>
-        <BrowserRouter basename={routerBasename}>
-          {authRoutes}
-          {appRoutes}
-        </BrowserRouter>
+        <RecoilRoot>
+          <BrowserRouter basename={routerBasename}>
+            {authRoutes}
+            {appRoutes}
+          </BrowserRouter>
+        </RecoilRoot>
       </AuthProvider>
     </CombinedProviders>
   );

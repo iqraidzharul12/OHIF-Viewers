@@ -13,6 +13,7 @@ import buildModeRoutes from './buildModeRoutes';
 import PrivateRoute from './PrivateRoute';
 import PropTypes from 'prop-types';
 import { Link } from 'react-router-dom';
+import { UserManagement } from './UserManagement';
 
 const NotFoundServer = ({
   message = 'Unable to query for studies at this time. Check your data source configuration or network connection',
@@ -84,6 +85,14 @@ const authRoutes = [
   },
 ];
 
+const adminRoutes = [
+  {
+    path: '/user-management',
+    children: UserManagement,
+    private: true,
+  },
+];
+
 // NOT FOUND (404)
 const notFoundRoute = { component: NotFound };
 
@@ -124,6 +133,7 @@ const createRoutes = ({
     ...bakedInRoutes,
     customRoutes?.notFoundRoute || notFoundRoute,
     ...authRoutes,
+    ...adminRoutes,
   ];
 
   function RouteWithErrorBoundary({ route, ...rest }) {

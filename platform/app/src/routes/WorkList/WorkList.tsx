@@ -14,6 +14,8 @@ import { utils, hotkeys } from '@ohif/core';
 import { Button, Card, Col, Flex, List, Row, Table, Tabs, Tooltip, Typography } from 'antd'
 import { createEditor } from 'slate'
 import { Slate, Editable, withReact } from 'slate-react'
+import patients from './mock-data/patients.json'
+import { MapJsonValue } from '../../utils/json'
 
 import {
   Icon,
@@ -43,6 +45,7 @@ import Compose from '../Mode/Compose';
 import ModeComponent from '../Mode/ModeComponent';
 import DefaultLayout from '../../layout/DefaultLayout';
 import RichTextEditor from './RichTextEditor';
+import { useGetStudies, useGetSeriesByStudyId } from './WorkList.state';
 
 const PatientInfoVisibility = Types.PatientInfoVisibility;
 
@@ -262,7 +265,44 @@ function WorkList({
   const rollingPageNumber = (pageNumber - 1) % rollingPageNumberMod;
   const offset = resultsPerPage * rollingPageNumber;
   const offsetAndTake = offset + resultsPerPage;
-  const tableDataSource = useMemo(()=> sortedStudies, [sortedStudies]);
+  // const tableDataSource = useMemo(()=> sortedStudies, [sortedStudies]);
+
+  const { isGettingStudies, doGetStudies } = useGetStudies()
+  const { isGettingSeriesByStudyId, doGetSeriesByStudyId } = useGetSeriesByStudyId()
+  const [studiesList, setStudiesList] = useState([])
+  const [selectedStudy, setSelectedStudy] = useState("")
+  const [seriesList, setSeriesList] = useState([])
+
+  const getStudies = async () => {
+    const res = await doGetStudies()
+    setStudiesList(res?.data?.data || [])
+  }
+
+  const getSeriesByStudyId = async (row: any) => {
+    if(row?.id){
+      const res = await doGetSeriesByStudyId(row.id)
+      setSeriesList(res?.data?.data || [])
+    } else {
+      setSeriesList([])
+    }
+  }
+
+  useEffect(() => {
+    getStudies()
+  }, [])
+
+  useEffect(() => {
+    getSeriesByStudyId(selectedStudy)
+  }, [selectedStudy])
+
+  const tableDataSource = useMemo(()=> {
+    return MapJsonValue(studiesList)
+  }, [studiesList]);
+
+
+  const seriesTableDataSource = useMemo(()=> {
+    return MapJsonValue(seriesList)
+  }, [seriesList]);
 
   const hasStudies = numOfStudies > 0;
   const versionNumber = process.env.VERSION_NUMBER;
@@ -403,75 +443,168 @@ function WorkList({
     commandsManager
   );
 
+  // const columns = [
+  //   {
+  //     title: 'Patient Name',
+  //     dataIndex: 'patientName',
+  //     key: 'patientName',
+  //   },
+  //   {
+  //     title: 'MRN',
+  //     dataIndex: 'mrn',
+  //     key: 'mrn',
+  //   },
+  //   {
+  //     title: 'Study Date',
+  //     dataIndex: 'studyDate',
+  //     key: 'date',
+  //     render: (date: string, record: any)=> {
+  //       const studyDate =
+  //         date &&
+  //         moment(date, ['YYYYMMDD', 'YYYY.MM.DD'], true).isValid() &&
+  //         moment(date, ['YYYYMMDD', 'YYYY.MM.DD']).format(t('Common:localDateFormat', 'MMM-DD-YYYY'));
+  //       const studyTime =
+  //         record?.time &&
+  //         moment(record?.time, ['HH', 'HHmm', 'HHmmss', 'HHmmss.SSS']).isValid() &&
+  //         moment(record?.time, ['HH', 'HHmm', 'HHmmss', 'HHmmss.SSS']).format(
+  //           t('Common:localTimeFormat', 'hh:mm A')
+  //         );
+  //       return `${studyDate || ""} ${studyTime || ""}`
+  //     }
+  //   },
+  //   {
+  //     title: 'Description',
+  //     dataIndex: 'description',
+  //     key: 'description',
+  //   },
+  //   {
+  //     title: 'Modality',
+  //     dataIndex: 'address',
+  //     key: 'address',
+  //   },
+  //   {
+  //     title: 'Accession #',
+  //     dataIndex: 'accession',
+  //     key: 'accession',
+  //     render: (data: string) => <TooltipClipboard>{data}</TooltipClipboard>
+  //   },
+  //   {
+  //     title: 'Instances',
+  //     dataIndex: 'instances',
+  //     key: 'instances',
+  //     render: (data)=> <Row>
+  //       <Icon name="group-layers"/>&nbsp;{data}
+  //     </Row>
+  //   },
+  // ]
+
   const columns = [
+    {
+      title: 'No',
+      dataIndex: 'id',
+      key: 'id',
+      width: 75,
+      render: (value: any, item: any, index: number) => index + 1
+    },
+    {
+      title: 'Status',
+      dataIndex: 'status',
+      key: 'status',
+      width: 150,
+    },
+    {
+      title: 'Study Date',
+      dataIndex: 'studyDate',
+      key: 'studyDate',
+      width: 150,
+      render: (date: string, record: any)=> {
+        const studyDate =
+          date &&
+          moment(date, ['YYYYMMDD', 'YYYY.MM.DD'], true).isValid() &&
+          moment(date, ['YYYYMMDD', 'YYYY.MM.DD']).format(t('Common:localDateFormat', 'DD/MM/YYYY'));
+        const studyTime =
+          record?.studyTime &&
+          moment(record?.studyTime, ['HH', 'HHmm', 'HHmmss', 'HHmmss.SSS']).isValid() &&
+          moment(record?.studyTime, ['HH', 'HHmm', 'HHmmss', 'HHmmss.SSS']).format(
+            t('Common:localTimeFormat', 'HH:mm')
+          );
+        return `${studyDate || ""} ${studyTime || ""}`
+      }
+    },
+    {
+      title: 'Expertise',
+      dataIndex: 'expertise',
+      key: 'expertise',
+      width: 150,
+    },
+    {
+      title: 'Patient ID',
+      dataIndex: 'patientID',
+      key: 'patientID',
+      width: 150,
+    },
     {
       title: 'Patient Name',
       dataIndex: 'patientName',
       key: 'patientName',
     },
     {
-      title: 'MRN',
-      dataIndex: 'mrn',
-      key: 'mrn',
+      title: 'Modality',
+      dataIndex: 'modality',
+      key: 'modality',
+      width: 150,
     },
     {
-      title: 'Study Date',
-      dataIndex: 'date',
-      key: 'date',
-      render: (date: string, record: any)=> {
-        const studyDate =
-          date &&
-          moment(date, ['YYYYMMDD', 'YYYY.MM.DD'], true).isValid() &&
-          moment(date, ['YYYYMMDD', 'YYYY.MM.DD']).format(t('Common:localDateFormat', 'MMM-DD-YYYY'));
-        const studyTime =
-          record?.time &&
-          moment(record?.time, ['HH', 'HHmm', 'HHmmss', 'HHmmss.SSS']).isValid() &&
-          moment(record?.time, ['HH', 'HHmm', 'HHmmss', 'HHmmss.SSS']).format(
-            t('Common:localTimeFormat', 'hh:mm A')
-          );
-        return `${studyDate || ""} ${studyTime || ""}`
-      }
+      title: 'Study Type',
+      dataIndex: 'studyType',
+      key: 'studyType',
+      width: 150,
     },
     {
       title: 'Description',
-      dataIndex: 'description',
-      key: 'description',
+      dataIndex: 'studyDescription',
+      key: 'studyDescription',
     },
     {
-      title: 'Modality',
-      dataIndex: 'address',
-      key: 'address',
+      title: 'Accession Number',
+      dataIndex: 'accessionNumber',
+      key: 'accessionNumber',
+      width: 200,
     },
     {
-      title: 'Accession #',
-      dataIndex: 'accession',
-      key: 'accession',
-      render: (data: string) => <TooltipClipboard>{data}</TooltipClipboard>
+      title: 'Referring Physician',
+      dataIndex: 'referringPhysicianName',
+      key: 'referringPhysicianName',
     },
     {
-      title: 'Instances',
-      dataIndex: 'instances',
-      key: 'instances',
-      render: (data)=> <Row>
-        <Icon name="group-layers"/>&nbsp;{data}
-      </Row>
+      title: 'Last Update',
+      dataIndex: 'lastUpdate',
+      key: 'lastUpdate',
+      width: 150,
+      render: (date: string)=> {
+        const lastUpdate =
+          date &&
+          moment(date, ['YYYYMMDDTHHmmss', 'YYYY.MM.DDTHHmmss'], true).isValid() &&
+          moment(date, ['YYYYMMDDTHHmmss', 'YYYY.MM.DDTHHmmss']).format(t('Common:localDateFormat', 'DD/MM/YYYY HH:mm'));
+        return `${lastUpdate || ""}`
+      }
     },
   ]
 
   const onRowClick = (study) => {
     const {
-      studyInstanceUid,
-      modalities,
+      studyInstanceUID,
+      modalities = "",
     } = study;
 
-    return (appConfig.groupEnabledModesFirst
+    const mapStudy = (appConfig.groupEnabledModesFirst
       ? appConfig.loadedModes.sort((a, b) => {
           const isValidA = a.isValidMode({
-            modalities: modalities.replaceAll('/', '\\'),
+            modalities: modalities?.replaceAll('/', '\\'),
             study,
           }).valid;
           const isValidB = b.isValidMode({
-            modalities: modalities.replaceAll('/', '\\'),
+            modalities: modalities?.replaceAll('/', '\\'),
             study,
           }).valid;
 
@@ -479,7 +612,7 @@ function WorkList({
         })
       : appConfig.loadedModes
     ).map((mode, i) => {
-      const modalitiesToCheck = modalities.replaceAll('/', '\\');
+      const modalitiesToCheck = modalities?.replaceAll('/', '\\');
 
       const { valid: isValidMode, description: invalidModeDescription } = mode.isValidMode({
         modalities: modalitiesToCheck,
@@ -490,18 +623,20 @@ function WorkList({
       if (filterValues.configUrl) {
         query.append('configUrl', filterValues.configUrl);
       }
-      query.append('StudyInstanceUIDs', studyInstanceUid);
+      query.append('StudyInstanceUIDs', studyInstanceUID);
 
       return {
-        studyInstanceUid,
+        studyInstanceUid: studyInstanceUID,
         linkUrl: `${dataPath ? '../../' : ''}${mode.routeName}${dataPath || ''}?${query.toString()}`,
-        dataCY: `mode-${mode.routeName}-${studyInstanceUid}`,
+        dataCY: `mode-${mode.routeName}-${studyInstanceUID}`,
         displayName: mode.displayName,
         isValidMode: isValidMode,
         invalidModeDescription: invalidModeDescription,
         mode: mode,
       }
     })
+
+    return mapStudy
   }
 
   useEffect(()=> {
@@ -512,109 +647,119 @@ function WorkList({
       setSelectedMode(selected.mode);
       setActiveKey("0");
     } else {
-      setStudyInstanceUID(undefined);
-      setLinkUrl(undefined);
+      setStudyInstanceUID("");
+      setLinkUrl("");
       setSelectedMode(undefined);
       setActiveKey("0");
     }
   }, [selectedRow])
 
-  const mockDetailDataSource = [{
-      "id": 1,
-      "thumbnail": "gambar",
-      "number": "201",
-      "date": "04/06/2024 20:45",
-      "modality": "CR",
-      "body_part": "THORAX PA",
-      "instances": "1",
-    },{
-      "id": 2,
-      "thumbnail": "gambar",
-      "number": "202",
-      "date": "04/06/2024 20:45",
-      "modality": "CR",
-      "body_part": "THORAX AP",
-      "instances": "1",
-    },{
-      "id": 3,
-      "thumbnail": "gambar",
-      "number": "203",
-      "date": "04/06/2024 20:45",
-      "modality": "CR",
-      "body_part": "ABDOMEN",
-      "instances": "2",
-    },{
-      "id": 4,
-      "thumbnail": "gambar",
-      "number": "204",
-      "date": "04/06/2024 20:45",
-      "modality": "CR",
-      "body_part": "THORAX AP",
-      "instances": "1",
-    },{
-      "id": 5,
-      "thumbnail": "gambar",
-      "number": "205",
-      "date": "04/06/2024 20:45",
-      "modality": "CR",
-      "body_part": "THORAX PA",
-      "instances": "2",
-    },
-  ]
-
-  const detailColumns = [
+  const seriesColumns = [
     {
       title: 'No',
       dataIndex: 'id',
       key: 'id',
-    },
-    {
-      title: 'Thumbnail',
-      dataIndex: 'thumbnail',
-      key: 'thumbnail',
+      width: 75,
+      render: (value: any, item: any, index: number) => index + 1
     },
     {
       title: 'Number',
-      dataIndex: 'number',
-      key: 'number',
+      dataIndex: 'seriesNumber',
+      key: 'seriesNumber',
+      width: 100,
     },
     {
       title: 'Series Date',
-      dataIndex: 'date',
-      key: 'date',
+      dataIndex: 'seriesDate',
+      key: 'seriesDate',
+      width: 150,
+      render: (date: string, record: any)=> {
+        const seriesDate =
+          date &&
+          moment(date, ['YYYYMMDD', 'YYYY.MM.DD'], true).isValid() &&
+          moment(date, ['YYYYMMDD', 'YYYY.MM.DD']).format(t('Common:localDateFormat', 'DD/MM/YYYY'));
+        const seriesTime =
+          record?.seriesTime &&
+          moment(record?.seriesTime, ['HH', 'HHmm', 'HHmmss', 'HHmmss.SSS']).isValid() &&
+          moment(record?.seriesTime, ['HH', 'HHmm', 'HHmmss', 'HHmmss.SSS']).format(
+            t('Common:localTimeFormat', 'HH:mm')
+          );
+        return `${seriesDate || ""} ${seriesTime || ""}`
+      }
+    },
+    {
+      title: 'Decription',
+      dataIndex: 'seriesDescription',
+      key: 'seriesDescription',
+      width: 250,
     },
     {
       title: 'Modality',
       dataIndex: 'modality',
       key: 'modality',
+      width: 150,
     },
     {
       title: 'Body Part',
-      dataIndex: 'body_part',
-      key: 'body_part',
+      dataIndex: 'bodyPartExamined',
+      key: 'bodyPartExamined',
+      width: 150,
+    },
+    {
+      title: 'Protocol Name',
+      dataIndex: 'protocolName',
+      key: 'protocolName',
+      width: 150,
+    },
+    {
+      title: 'Station Name',
+      dataIndex: 'stationName',
+      key: 'stationName',
+      width: 150,
+    },
+    {
+      title: 'Manufacturer',
+      dataIndex: 'manufacturer',
+      key: 'manufacturer',
+      width: 150,
     },
     {
       title: 'Instances',
       dataIndex: 'instances',
       key: 'instances',
+      width: 150,
+      render: (data: any)=> (data || []).length
+    },
+    {
+      title: 'Last Update',
+      dataIndex: 'lastUpdate',
+      key: 'lastUpdate',
+      width: 150,
+      render: (date: string)=> {
+        const lastUpdate =
+          date &&
+          moment(date, ['YYYYMMDDTHHmmss', 'YYYY.MM.DDTHHmmss'], true).isValid() &&
+          moment(date, ['YYYYMMDDTHHmmss', 'YYYY.MM.DDTHHmmss']).format(t('Common:localDateFormat', 'DD/MM/YYYY HH:mm'));
+        return `${lastUpdate || ""}`
+      }
     },
   ]
 
-  useEffect(()=> {
-    if(tableDataSource && tableDataSource[0]){
-      const data = onRowClick(tableDataSource[0])
-      if(isEqual(selectedRow, data)){
-        // setSelectedRow(null)
-      } else {
-        // setSelectedRow(data)
-      }
-    }
-  }, [tableDataSource])
+  // useEffect(()=> {
+  //   if(tableDataSource && tableDataSource[0]){
+  //     const data = onRowClick(tableDataSource[0])
+  //     if(isEqual(selectedRow, data)){
+  //       // setSelectedRow(null)
+  //     } else {
+  //       // setSelectedRow(data)
+  //     }
+  //   }
+  // }, [tableDataSource])
 
   return (
     <DefaultLayout>
 
-      <StudyListFilter
+      {/* <StudyListFilter
             numOfStudies={pageNumber * resultsPerPage > 100 ? 101 : numOfStudies}
             filtersMeta={filtersMeta}
             filterValues={{ ...filterValues, ...defaultSortValues }}
@@ -625,7 +770,7 @@ function WorkList({
             getDataSourceConfigurationComponent={
               dataSourceConfigurationComponent ? () => dataSourceConfigurationComponent() : undefined
             }
-          />
+          /> */}
       <Flex>
         <Col md={2} style={{padding: '0 8px'}}>
           <Card title="AKSI">
@@ -687,6 +832,7 @@ function WorkList({
                   if(isEqual(selectedRow, data)){
                     // setSelectedRow(null)
                   } else {
+                    setSelectedStudy(record)
                     setSelectedRow(data)
                   }
                 },
@@ -704,23 +850,25 @@ function WorkList({
                 return "cursor-pointer"
               }
             }}
-            scroll={{ y: 480, scrollToFirstRowOnChange: true }}
+            scroll={{ y: 480, scrollToFirstRowOnChange: true, x: "max-content" }}
+            loading={isGettingStudies}
           />
           {
             selectedMode &&
               <Table
                 bordered
                 rowKey={"id"}
-                dataSource={mockDetailDataSource}
-                columns={detailColumns}
+                dataSource={seriesTableDataSource}
+                columns={seriesColumns}
                 pagination={false}
-                scroll={{ y: 160, scrollToFirstRowOnChange: true }}
+                scroll={{ y: 160, scrollToFirstRowOnChange: true, x: "max-content" }}
+                loading={isGettingSeriesByStudyId}
               />
           }
         </Col>
         {
           selectedMode &&
-          <Col md={8} style={{padding: '16px'}}>
+          <Col md={8} style={{marginLeft: '16px'}}>
             <Tabs
               activeKey={activeKey}
               onChange={(key)=> {
@@ -728,7 +876,10 @@ function WorkList({
                   const selected =  selectedRow[key]
                   setStudyInstanceUID(selected.studyInstanceUid);
                   setLinkUrl(selected.linkUrl);
-                  setSelectedMode(selected.mode);
+                  setSelectedMode(undefined);
+                  setTimeout(()=> {
+                    setSelectedMode(selected.mode);
+                  }, 10)
                   setActiveKey(key)
                 }
               }}
@@ -742,13 +893,13 @@ function WorkList({
               })}
             />
             <ModeComponent
-              mode={selectedMode}
-              extensionManager={extensionManager}
-              servicesManager={servicesManager}
-              commandsManager={commandsManager}
-              hotkeysManager={hotkeysManager}
-              studyInstanceUIDs={[studyInstanceUID]}
-            />
+                mode={selectedMode}
+                extensionManager={extensionManager}
+                servicesManager={servicesManager}
+                commandsManager={commandsManager}
+                hotkeysManager={hotkeysManager}
+                studyInstanceUIDs={[studyInstanceUID]}
+              />
             <br/>
             <Card>
               <RichTextEditor />
@@ -813,7 +964,7 @@ function _getQueryFilterValues(params) {
       endDate: params.get('enddate') || null,
     },
     description: params.get('description'),
-    modalities: params.get('modalities') ? params.get('modalities').split(',') : [],
+    modalities: params.get('modalities') ? params.get('modalities')?.split(',') : [],
     accession: params.get('accession'),
     sortBy: params.get('sortby'),
     sortDirection: params.get('sortdirection'),

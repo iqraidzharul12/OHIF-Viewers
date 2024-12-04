@@ -120,8 +120,8 @@ export default function ModeComponent({
   //   customizationService.get('advancedPresets') || generateAdvancedPresets();
 
 
-  // const runTimeHangingProtocolId = lowerCaseSearchParams.get('hangingprotocolid');
-  const runTimeHangingProtocolId = mode.displayName === "Basic Viewer"? 'fourUp': lowerCaseSearchParams.get('hangingprotocolid');
+  const runTimeHangingProtocolId = lowerCaseSearchParams.get('hangingprotocolid');
+  // const runTimeHangingProtocolId = mode.displayName === "Basic Viewer"? 'fourUp': lowerCaseSearchParams.get('hangingprotocolid');
   const token = lowerCaseSearchParams.get('token');
 
   if (token) {
